@@ -1,0 +1,5 @@
+Saving system for my current project. Based on Ryan Hipple's idea of Scriptable Object variables from Unite Austin 2017.
+
+Decentralized variables wrapped in scriptable objects get rid off singleton based saving manager. Observer enables scene objects to react to load event. In-editor extendable. Works well for game data, app settings and multi language support.
+
+Since I'm in love with Odin Serializer and Editor I added cleaner version that takes advantage of them but obviously requires those. Old code is in NonOdin folder. I've removed XML support in new version, since I don't see purpose of it anymore - JSON is good for user friendly formated files, such as language files or app settings while binnary format is fine for game data. JSON Serialization uses MiniJson and includes pretty print.
