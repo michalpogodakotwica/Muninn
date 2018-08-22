@@ -1,6 +1,6 @@
 ﻿using System;
-using Architecture.DependencyInjection;
 using Sirenix.OdinInspector;
+using Sirenix.Serialization;
 using UnityEngine;
 
 namespace Saving
@@ -8,37 +8,31 @@ namespace Saving
     [CreateAssetMenu(menuName = "Saving/Template")]
     public class Template : SerializedScriptableObject
     {
-        [SerializeField] private Subject _loadEvent;
-        [SerializeField] private Path _path;
-        [SerializeField] private ISaveableVariableCollection _saveableVariableCollection;
-        [SerializeField] private Action _onLoadFail;
-        
-        public void New()
+        [OdinSerialize] private Path _path;
+        [OdinSerialize] private ISerializer _serializer;
+        [OdinSerialize] public Action OnLoadFail;
+
+        public void Reload()
         {
-            _path.GenerateNewPath();
-            _saveableVariableCollection.RestoreDefaultValues();
-            if (_loadEvent)
-                _loadEvent.Invoke();
-            Save();
+            _serializer.Restore();
         }
 
+        [HideInEditorMode, Button]
         public void Save()
         {
-            _saveableVariableCollection.ToFile(_path.GetFullPath());
+            _serializer.Save(_path.GetFilePath());
         }
 
-        public void Load(Action onLoadFail)
+        [HideInEditorMode, Button]
+        public void Load()
         {
             try
             {
-                _saveableVariableCollection.FromFile(_path.GetFullPath());
-                if (_loadEvent != null)
-                    _loadEvent.Invoke();
+                _serializer.Load(_path.GetFilePath());
             }
-            catch (Exception e)
+            catch
             {
-                Debug.LogError("Couldn't load file. " + e.Message);
-                _onLoadFail?.Invoke();
+                OnLoadFail?.Invoke();
             }
         }
     }

@@ -5,26 +5,26 @@ using UnityEngine;
 namespace Architecture.Variables
 {
     [Serializable]
-    public class Reference<TVariable>
+    public class Reference<TVariable> : IValue<TVariable>
     {
-        [SerializeField, HideInPlayMode]
+        [SerializeField, HideInPlayMode, HorizontalGroup]
         private bool UseConstant = true;
-        [SerializeField, ShowIf("UseConstant"), HideInPlayMode]
+        [SerializeField, ShowIf("UseConstant"), HideInPlayMode, HorizontalGroup, HideLabel]
         private TVariable ConstantValue;
-        [SerializeField, HideIf("UseConstant"), HideInPlayMode]
+        [SerializeField, HideIf("UseConstant"), HideInPlayMode, HorizontalGroup, HideLabel]
         private Variable<TVariable> Variable;
 
         [ShowInInspector, HideInEditorMode, HideLabel]
         public TVariable Value
         {
-            get { return UseConstant ? ConstantValue : ( Variable ? Variable.RuntimeValue : default(TVariable)); }
+            get { return UseConstant ? ConstantValue : ( Variable ? Variable.Value : default(TVariable)); }
 
             set
             {
                 if (UseConstant)
                     ConstantValue = value;
                 else
-                    Variable.RuntimeValue = value;
+                    Variable.Value = value;
             }
         }
     }

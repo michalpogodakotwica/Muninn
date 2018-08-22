@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using Architecture.Variables;
+using Sirenix.Serialization;
+using Sirenix.Utilities;
 using UnityEngine;
 
 namespace Saving
@@ -9,26 +11,10 @@ namespace Saving
     [Serializable]
     public class Path
     {
-        [SerializeField] private Reference<string>[] _relativePath;
+        [SerializeField] private string _pathPrefix;
+        [SerializeField] private string _pathSuffix;
+        [OdinSerialize] private Reference<string> _path;
         [SerializeField] private Location _location;
-        
-        public string GenerateNewPath()
-        {
-            var newFilePath = GetFullPath();
-            while (File.Exists(newFilePath))
-            {
-                _relativePath.Last().Value = System.IO.Path.GetRandomFileName();
-                newFilePath = GetFullPath();
-            }
-            return newFilePath;
-        }
-
-        public string GetFullPath()
-        {
-            var root = LocationBasedPathRoot();
-            var path = System.IO.Path.Combine(_relativePath.Select(v => v.Value).ToArray());
-            return System.IO.Path.Combine(root, path);
-        }
 
         private string LocationBasedPathRoot()
         {
@@ -43,28 +29,50 @@ namespace Saving
             }
         }
 
-        public static string[] AccessTimeSortedExistingFiles(string directoryPath, bool ascending)
+        private string GetDirectoryPath()
         {
-            var sortedAscending = Directory.GetFiles(directoryPath)
-                .Select(f => new FileInfo(f))
-                .OrderBy(f => f.LastAccessTime)
-                .Select(f => f.Name);
-
-            return (ascending ? sortedAscending : sortedAscending.Reverse()).ToArray();
+            var root = LocationBasedPathRoot();
+            return _pathPrefix.IsNullOrWhitespace()
+                ? root
+                : System.IO.Path.Combine(root, _pathPrefix);
         }
 
-        public static string[] ExistingFiles(string directoryPath)
+        private string GetFilePath(string path)
         {
-            return Directory.GetFiles(directoryPath)
-                .Select(f => new FileInfo(f).Name)
-                .ToArray();
+            var directory = GetDirectoryPath();
+            return _pathSuffix.IsNullOrWhitespace()
+                ? System.IO.Path.Combine(directory, path)
+                : System.IO.Path.Combine(directory, path, _pathSuffix);
         }
 
-        public static string[] ExistingDirectories(string directoryPath)
+        public string GetFilePath()
         {
-            return Directory.GetDirectories(directoryPath)
-                .Select(f => new FileInfo(f).FullName)
-                .ToArray();
+            return GetFilePath(_path.Value);
+        }
+
+        public void SetNewUniquePath()
+        {
+            while (File.Exists(GetFilePath()))
+                _path.Value = System.IO.Path.GetRandomFileName();
+        }
+
+        public void SetPath(string newPath)
+        {
+            _path.Value = newPath;
+        }
+
+        public string[] AvailableFiles()
+        {
+            return AvailableFilePaths().Select(System.IO.Path.GetFileNameWithoutExtension).ToArray();
+        }
+
+        public string[] AvailableFilePaths()
+        {
+            var directoryPath = GetDirectoryPath();
+            var files = _pathSuffix.IsNullOrWhitespace()
+                ? Directory.GetFiles(directoryPath)
+                : Directory.GetDirectories(directoryPath);
+            return files;
         }
     }
 }

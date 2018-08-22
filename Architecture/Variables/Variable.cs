@@ -1,42 +1,46 @@
-﻿using UnityEngine;
+﻿using System;
+using Saving;
 using Sirenix.OdinInspector;
+using Sirenix.Serialization;
+using UnityEngine;
 
 namespace Architecture.Variables
 {
-    public abstract class Variable : ScriptableObject
+    public abstract class Variable : SerializedScriptableObject, ISaveable
     {
-        public abstract void RestoreDefaultValue();
-        public abstract void SetRuntimeValue(object newValue);
-        public abstract object GetBoxedRuntimeValue();
+        public abstract void Restore();
+        public abstract void Load(object data);
+        public abstract object Save();
     }
 
-    public abstract class Variable<T> : Variable
+    public abstract class Variable<T> : Variable, IValue<T>
     {
-        [SerializeField]
-        private T _defaultValue;
-
-        [ShowInInspector, ReadOnly, HideInEditorMode]
-        public T RuntimeValue { get; set; }
-
+        public T Value { get; set; }
+        [SerializeField] private T _defaultValue;
+        
         private void OnEnable()
         {
-            RestoreDefaultValue();
+            Restore();
         }
 
         [HideInEditorMode, Button]
-        public override void RestoreDefaultValue()
+        public override void Restore()
         {
-            RuntimeValue = _defaultValue;
+            var bytes = SerializationUtility.SerializeValue(_defaultValue, DataFormat.Binary);
+            Value = SerializationUtility.DeserializeValue<T>(bytes, DataFormat.Binary);
         }
 
-        public override void SetRuntimeValue(object newValue)
+        public override void Load(object data)
         {
-            RuntimeValue = (T)newValue;
+            // Data is a boxed object and sometimes loaded from JSON. Since for example 1 represents both
+            // an integer and a float data sometimes can't be casted directly - whole number floats are
+            // passed as boxed integer and those can only be casted to integers. Conversion is needed.
+            Value = (T)Convert.ChangeType(data, typeof(T)); 
         }
 
-        public override object GetBoxedRuntimeValue()
+        public override object Save()
         {
-            return RuntimeValue;
+            return Value;
         }
     }
 }
