@@ -1,14 +1,14 @@
-#Muninn
+# Muninn
 
 Saving system for my current project. In-editor extendable, singleton-free saving system. Suited for gameplay data, config and multi language support. Based on Ryan Hipple's idea of Scriptable Object variables from Unite Austin 2017. Requires Odin Serializer and Editor.
 
 
-##Examples
+## Examples
 
-Config file:
+### Config file:
 
 ![Example](Example.png)
-
+```json
 {
   "Full Screen": true,
   "Resolution": "1920 x 1080 @ 75Hz",
@@ -18,12 +18,15 @@ Config file:
   "Language": "English",
   "Text Speed": 1
 }
+```
 
-Nested arrays pretty printing:
+### Nested arrays pretty printing:
 
+```json
 {
-  "Test Scene": [    
+  "Some dialogue": [    
     ["Obi Wan", "Hello there."], 
     ["Grievous", "General Kenobi. You are a bold one."]
   ]
 }
+```
